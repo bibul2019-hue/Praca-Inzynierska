@@ -13,9 +13,11 @@
     .zone { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 12px 0; align-items: center; }
     .zone-name { font-size: 1.1em; color: #333; }
     .zone-profile { font-size: 0.9em; color: #777; font-style: italic; }
-    .btn { display: inline-block; background: #2196F3; color: white; padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; }
+    .btn { display: inline-block; background: #2196F3; color: white; padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; width: 100%; }
     .btn:hover { opacity: 0.9; }
-    .btn-stop { background: #dc2626; width: 100%; font-weight: bold; margin-top: 10px; }
+    .btn-stop { background: #dc2626; font-weight: bold; }
+    .grid-3 { display: flex; gap: 15px; flex-wrap: wrap; }
+    .col-3 { flex: 1; min-width: 200px; }
     .weather-box { display: flex; flex-direction: row; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
     .w-day { background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center; flex: 1; min-width: 200px; }
     .chart-container { width: 100%; height: 250px; margin-bottom: 20px; }
@@ -35,10 +37,10 @@
     <div class="card">
       <h2 style="margin-top:0;">Logowanie do systemu</h2>
       <label>E-mail:</label>
-      <input type="email" id="login-email" value="...">
+      <input type="email" id="login-email" placeholder="...">
       <label>Hasło:</label>
       <input type="password" id="login-pass" placeholder="...">
-      <button class="btn" style="width: 100%;" id="btn-login">Zaloguj się</button>
+      <button class="btn" id="btn-login">Zaloguj się</button>
       <p id="login-error" style="color: red; font-size: 0.9em; margin-top: 10px;"></p>
     </div>
   </div>
@@ -48,7 +50,7 @@
 
     <div style="text-align: right; margin-bottom: 15px;">
       <span style="margin-right: 15px;">Czas ESP32: <strong id="time">--:--</strong></span>
-      <button class="btn" style="background: #64748b; padding: 6px 12px; font-size: 0.9em;" id="btn-logout">Wyloguj</button>
+      <button class="btn" style="background: #64748b; padding: 6px 12px; font-size: 0.9em; width: auto;" id="btn-logout">Wyloguj</button>
     </div>
 
     <!-- POGODA -->
@@ -100,6 +102,32 @@
       </div>
     </div>
 
+    <!-- STEROWANIE RĘCZNE (UKŁAD IDENTYCZNY JAK EDYCJA USTAWIEŃ) -->
+    <div class="card">
+      <h2>Sterowanie Ręczne</h2>
+      <p style="margin-top: 0; color: #555;">Status pompy: <strong id="pump-status">Sprawdzanie...</strong></p>
+      <div class="grid-3">
+        <div class="col-3">
+          <label>Strefa 1 (<span id="man-p1">Trawa</span>) – Czas (s):</label>
+          <input type="number" id="manual-time-1" value="60" min="5" max="3600">
+          <button class="btn btn-start-zone" data-zone="1">▶ Włącz Strefę 1</button>
+        </div>
+        <div class="col-3">
+          <label>Strefa 2 (<span id="man-p2">Kwiaty</span>) – Czas (s):</label>
+          <input type="number" id="manual-time-2" value="60" min="5" max="3600">
+          <button class="btn btn-start-zone" data-zone="2">▶ Włącz Strefę 2</button>
+        </div>
+        <div class="col-3">
+          <label>Strefa 3 (<span id="man-p3">Warzywa</span>) – Czas (s):</label>
+          <input type="number" id="manual-time-3" value="60" min="5" max="3600">
+          <button class="btn btn-start-zone" data-zone="3">▶ Włącz Strefę 3</button>
+        </div>
+      </div>
+      <div style="margin-top: 15px;">
+        <button class="btn btn-stop" id="btn-stop-all">🛑 AWARYJNY STOP (Wyłącz wszystko)</button>
+      </div>
+    </div>
+
     <!-- WYKRESY -->
     <div class="card">
       <h2>Historia Wilgotności (ostatnie 24 odczyty)</h2>
@@ -112,42 +140,20 @@
       <h3 style="font-size: 0.9em; text-align: center; color: #1976d2;">Strefa 3</h3>
       <div class="chart-container"><canvas id="chart3"></canvas></div>
     </div>
-    
-<!-- STEROWANIE RĘCZNE -->
-    <div class="card">
-      <h2>Sterowanie Ręczne (Zdalne)</h2>
-      <p>Status pompy: <strong id="pump-status">Sprawdzanie...</strong></p>
-      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 150px;">
-          <label>Wybierz strefę:</label>
-          <select id="manual-zone">
-            <option value="1">Strefa 1</option>
-            <option value="2">Strefa 2</option>
-            <option value="3">Strefa 3</option>
-          </select>
-        </div>
-        <div style="flex: 1; min-width: 150px;">
-          <label>Czas (sekundy):</label>
-          <input type="number" id="manual-time" value="60" min="5" max="3600">
-        </div>
-      </div>
-      <button class="btn" style="width: 100%; background: #16a34a;" id="btn-start-manual">▶ Uruchom podlewanie</button>
-      <button class="btn btn-stop" id="btn-stop-all">🛑 AWARYJNY STOP (Wyłącz wszystko)</button>
-    </div>
-    
+
     <!-- EDYCJA USTAWIEŃ -->
     <div class="card">
       <h2>Edycja Ustawień Harmonogramu i Celów</h2>
-      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 200px;">
+      <div class="grid-3">
+        <div class="col-3">
           <label>Strefa 1 – Roślina:</label><input type="text" id="edit-p1" value="Trawa">
           <label>Strefa 1 – Cel (%):</label><input type="number" id="edit-t1" value="60">
         </div>
-        <div style="flex: 1; min-width: 200px;">
+        <div class="col-3">
           <label>Strefa 2 – Roślina:</label><input type="text" id="edit-p2" value="Kwiaty">
           <label>Strefa 2 – Cel (%):</label><input type="number" id="edit-t2" value="70">
         </div>
-        <div style="flex: 1; min-width: 200px;">
+        <div class="col-3">
           <label>Strefa 3 – Roślina:</label><input type="text" id="edit-p3" value="Warzywa">
           <label>Strefa 3 – Cel (%):</label><input type="number" id="edit-t3" value="80">
         </div>
@@ -156,7 +162,7 @@
         <div style="flex: 1;"><label>Godzina startu:</label><input type="time" id="edit-wstart" value="20:00"></div>
         <div style="flex: 1;"><label>Godzina końca:</label><input type="time" id="edit-wend" value="20:30"></div>
       </div>
-      <button class="btn" style="width: 100%;" id="btn-save-settings">💾 Zapisz ustawienia w ESP32</button>
+      <button class="btn" id="btn-save-settings">💾 Zapisz ustawienia w ESP32</button>
     </div>
 
   </div>
@@ -280,28 +286,46 @@
       onValue(ref(db, '/ustawienia'), (snapshot) => {
         const u = snapshot.val();
         if (!u) return;
-        if (u.p1) { document.getElementById('p1_name').innerText = u.p1; document.getElementById('edit-p1').value = u.p1; }
-        if (u.t1) { document.getElementById('t1').innerText = u.t1;      document.getElementById('edit-t1').value = u.t1; }
-        if (u.p2) { document.getElementById('p2_name').innerText = u.p2; document.getElementById('edit-p2').value = u.p2; }
-        if (u.t2) { document.getElementById('t2').innerText = u.t2;      document.getElementById('edit-t2').value = u.t2; }
-        if (u.p3) { document.getElementById('p3_name').innerText = u.p3; document.getElementById('edit-p3').value = u.p3; }
-        if (u.t3) { document.getElementById('t3').innerText = u.t3;      document.getElementById('edit-t3').value = u.t3; }
+        if (u.p1) {
+          document.getElementById('p1_name').innerText = u.p1;
+          document.getElementById('man-p1').innerText  = u.p1;
+          document.getElementById('edit-p1').value     = u.p1;
+        }
+        if (u.t1) { document.getElementById('t1').innerText = u.t1; document.getElementById('edit-t1').value = u.t1; }
+        if (u.p2) {
+          document.getElementById('p2_name').innerText = u.p2;
+          document.getElementById('man-p2').innerText  = u.p2;
+          document.getElementById('edit-p2').value     = u.p2;
+        }
+        if (u.t2) { document.getElementById('t2').innerText = u.t2; document.getElementById('edit-t2').value = u.t2; }
+        if (u.p3) {
+          document.getElementById('p3_name').innerText = u.p3;
+          document.getElementById('man-p3').innerText  = u.p3;
+          document.getElementById('edit-p3').value     = u.p3;
+        }
+        if (u.t3) { document.getElementById('t3').innerText = u.t3; document.getElementById('edit-t3').value = u.t3; }
         if (u.wStart) document.getElementById('edit-wstart').value = u.wStart;
-        if (u.wEnd)   document.getElementById('edit-wend').value = u.wEnd;
+        if (u.wEnd)   document.getElementById('edit-wend').value   = u.wEnd;
       });
     }
 
-    // Zdalny START
-    document.getElementById('btn-start-manual').addEventListener('click', () => {
-      const zone = parseInt(document.getElementById('manual-zone').value);
-      const time = parseInt(document.getElementById('manual-time').value);
-      set(ref(db, '/komendy'), {
-        akcja: "START",
-        zone: zone,
-        time: time,
-        trigger: Date.now()
+    // Zdalny START dla wybranej strefy (Strefa 1, 2 lub 3)
+    document.querySelectorAll('.btn-start-zone').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const zone = parseInt(btn.getAttribute('data-zone'));
+        const time = parseInt(document.getElementById('manual-time-' + zone).value);
+        if (isNaN(time) || time < 5) {
+          alert("Podaj poprawny czas (minimum 5 sekund).");
+          return;
+        }
+        set(ref(db, '/komendy'), {
+          akcja: "START",
+          zone: zone,
+          time: time,
+          trigger: Date.now()
+        });
+        alert(`Wysłano polecenie uruchomienia Strefy ${zone} na ${time}s!`);
       });
-      alert(`Wysłano polecenie uruchomienia Strefy ${zone} na ${time}s!`);
     });
 
     // Zdalny STOP
