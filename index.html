@@ -100,7 +100,20 @@
       </div>
     </div>
 
-    <!-- STEROWANIE RĘCZNE -->
+    <!-- WYKRESY -->
+    <div class="card">
+      <h2>Historia Wilgotności (ostatnie 24 odczyty)</h2>
+      <h3 style="font-size: 0.9em; text-align: center; color: #d32f2f;">Strefa 1</h3>
+      <div class="chart-container"><canvas id="chart1"></canvas></div>
+      <hr>
+      <h3 style="font-size: 0.9em; text-align: center; color: #388e3c;">Strefa 2</h3>
+      <div class="chart-container"><canvas id="chart2"></canvas></div>
+      <hr>
+      <h3 style="font-size: 0.9em; text-align: center; color: #1976d2;">Strefa 3</h3>
+      <div class="chart-container"><canvas id="chart3"></canvas></div>
+    </div>
+    
+<!-- STEROWANIE RĘCZNE -->
     <div class="card">
       <h2>Sterowanie Ręczne (Zdalne)</h2>
       <p>Status pompy: <strong id="pump-status">Sprawdzanie...</strong></p>
@@ -121,20 +134,7 @@
       <button class="btn" style="width: 100%; background: #16a34a;" id="btn-start-manual">▶ Uruchom podlewanie</button>
       <button class="btn btn-stop" id="btn-stop-all">🛑 AWARYJNY STOP (Wyłącz wszystko)</button>
     </div>
-
-    <!-- WYKRESY -->
-    <div class="card">
-      <h2>Historia Wilgotności (ostatnie 24 odczyty)</h2>
-      <h3 style="font-size: 0.9em; text-align: center; color: #d32f2f;">Strefa 1</h3>
-      <div class="chart-container"><canvas id="chart1"></canvas></div>
-      <hr>
-      <h3 style="font-size: 0.9em; text-align: center; color: #388e3c;">Strefa 2</h3>
-      <div class="chart-container"><canvas id="chart2"></canvas></div>
-      <hr>
-      <h3 style="font-size: 0.9em; text-align: center; color: #1976d2;">Strefa 3</h3>
-      <div class="chart-container"><canvas id="chart3"></canvas></div>
-    </div>
-
+    
     <!-- EDYCJA USTAWIEŃ -->
     <div class="card">
       <h2>Edycja Ustawień Harmonogramu i Celów</h2>
