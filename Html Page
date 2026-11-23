@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Nawadniania ESP32 (Cloud)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background-color: #f4f4f9; }
+    .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }
+    .container { padding: 20px; max-width: 900px; margin: auto; }
+    .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .zone { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 12px 0; align-items: center; }
+    .zone-name { font-size: 1.1em; color: #333; }
+    .zone-profile { font-size: 0.9em; color: #777; font-style: italic; }
+    .btn { display: inline-block; background: #2196F3; color: white; padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; }
+    .btn:hover { opacity: 0.9; }
+    .btn-stop { background: #dc2626; width: 100%; font-weight: bold; margin-top: 10px; }
+    .weather-box { display: flex; flex-direction: row; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .w-day { background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center; flex: 1; min-width: 200px; }
+    .chart-container { width: 100%; height: 250px; margin-bottom: 20px; }
+    input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; margin-top: 4px; margin-bottom: 12px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Panel Nawadniania ESP32</h1>
+    <p id="status-bar">Wymagane logowanie do chmury Firebase</p>
+  </div>
+
+  <!-- EKRAN LOGOWANIA -->
+  <div id="login-section" class="container" style="max-width: 420px; margin-top: 40px;">
+    <div class="card">
+      <h2 style="margin-top:0;">Logowanie do systemu</h2>
+      <label>E-mail:</label>
+      <input type="email" id="login-email" value="bibul2019@gmail.com">
+      <label>Hasło:</label>
+      <input type="password" id="login-pass" placeholder="A1AbA5tRowy#">
+      <button class="btn" style="width: 100%;" id="btn-login">Zaloguj się</button>
+      <p id="login-error" style="color: red; font-size: 0.9em; margin-top: 10px;"></p>
+    </div>
+  </div>
+
+  <!-- PANEL GŁÓWNY (UKRYTY DO CZASU ZALOGOWANIA) -->
+  <div id="dashboard-section" class="container hidden">
+
+    <div style="text-align: right; margin-bottom: 15px;">
+      <span style="margin-right: 15px;">Czas ESP32: <strong id="time">--:--</strong></span>
+      <button class="btn" style="background: #64748b; padding: 6px 12px; font-size: 0.9em;" id="btn-logout">Wyloguj</button>
+    </div>
+
+    <!-- POGODA -->
+    <div class="card">
+      <h2>Pogoda i Prognoza</h2>
+      <div class="weather-box">
+        <div class="w-day">
+          <div style="font-size: 1.1em; margin-bottom: 10px;">Dzisiaj</div>
+          <div>🌡️ Temp: <strong id="temp0">--</strong> &deg;C | 💧 Wilg: <strong id="hum0">--</strong> %</div>
+          <div style="margin-top: 8px;">☔ Szansa: <strong id="pop0">--</strong> % | 🌧️ Opad: <strong id="rain0">--</strong> mm</div>
+        </div>
+        <div class="w-day">
+          <div style="font-size: 1.1em; margin-bottom: 10px;">Jutro</div>
+          <div>🌡️ Temp: <strong id="temp1">--</strong> &deg;C | 💧 Wilg: <strong id="hum1">--</strong> %</div>
+          <div style="margin-top: 8px;">☔ Szansa: <strong id="pop1">--</strong> % | 🌧️ Opad: <strong id="rain1">--</strong> mm</div>
+        </div>
+        <div class="w-day">
+          <div style="font-size: 1.1em; margin-bottom: 10px;">Pojutrze</div>
+          <div>🌡️ Temp: <strong id="temp2">--</strong> &deg;C | 💧 Wilg: <strong id="hum2">--</strong> %</div>
+          <div style="margin-top: 8px;">☔ Szansa: <strong id="pop2">--</strong> % | 🌧️ Opad: <strong id="rain2">--</strong> mm</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STREFY I BECZKA OBOK SIEBIE -->
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+      <div class="card" style="flex: 2; min-width: 280px; margin-bottom: 0;">
+        <h2>Aktualne odczyty stref</h2>
+        <div class="zone">
+          <div><span class="zone-name">Strefa 1</span> <br><span class="zone-profile">(<span id="p1_name">Trawa</span>)</span></div> 
+          <div style="text-align: right;"><strong id="h1" style="font-size: 1.2em; color: #d32f2f;">-- %</strong> <br><span style="font-size: 0.9em; color: #555;">Cel: <span id="t1">60</span>%</span></div>
+        </div>
+        <div class="zone">
+          <div><span class="zone-name">Strefa 2</span> <br><span class="zone-profile">(<span id="p2_name">Kwiaty</span>)</span></div> 
+          <div style="text-align: right;"><strong id="h2" style="font-size: 1.2em; color: #388e3c;">-- %</strong> <br><span style="font-size: 0.9em; color: #555;">Cel: <span id="t2">70</span>%</span></div>
+        </div>
+        <div class="zone" style="border: none;">
+          <div><span class="zone-name">Strefa 3</span> <br><span class="zone-profile">(<span id="p3_name">Warzywa</span>)</span></div> 
+          <div style="text-align: right;"><strong id="h3" style="font-size: 1.2em; color: #1976d2;">-- %</strong> <br><span style="font-size: 0.9em; color: #555;">Cel: <span id="t3">80</span>%</span></div>
+        </div>
+      </div>
+
+      <div class="card" style="flex: 1; min-width: 220px; margin-bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: #f0f9ff; border: 1px solid #bae6fd;">
+        <h2 style="color: #0369a1; margin-top: 0; margin-bottom: 10px;">🛢️ Poziom w Beczce</h2>
+        <div style="font-size: 2.8em; font-weight: bold; color: #0284c7; margin: 10px 0;">
+          <span id="barrel">--</span>%
+        </div>
+        <div id="barrel-status" style="font-size: 0.95em; color: #64748b; font-weight: bold; margin-top: 5px;">Oczekiwanie na dane...</div>
+      </div>
+    </div>
+
+    <!-- STEROWANIE RĘCZNE -->
+    <div class="card">
+      <h2>Sterowanie Ręczne (Zdalne)</h2>
+      <p>Status pompy: <strong id="pump-status">Sprawdzanie...</strong></p>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 150px;">
+          <label>Wybierz strefę:</label>
+          <select id="manual-zone">
+            <option value="1">Strefa 1</option>
+            <option value="2">Strefa 2</option>
+            <option value="3">Strefa 3</option>
+          </select>
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+          <label>Czas (sekundy):</label>
+          <input type="number" id="manual-time" value="60" min="5" max="3600">
+        </div>
+      </div>
+      <button class="btn" style="width: 100%; background: #16a34a;" id="btn-start-manual">▶ Uruchom podlewanie</button>
+      <button class="btn btn-stop" id="btn-stop-all">🛑 AWARYJNY STOP (Wyłącz wszystko)</button>
+    </div>
+
+    <!-- EDYCJA USTAWIEŃ -->
+    <div class="card">
+      <h2>Edycja Ustawień Harmonogramu i Celów</h2>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+          <label>Strefa 1 – Roślina:</label><input type="text" id="edit-p1" value="Trawa">
+          <label>Strefa 1 – Cel (%):</label><input type="number" id="edit-t1" value="60">
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+          <label>Strefa 2 – Roślina:</label><input type="text" id="edit-p2" value="Kwiaty">
+          <label>Strefa 2 – Cel (%):</label><input type="number" id="edit-t2" value="70">
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+          <label>Strefa 3 – Roślina:</label><input type="text" id="edit-p3" value="Warzywa">
+          <label>Strefa 3 – Cel (%):</label><input type="number" id="edit-t3" value="80">
+        </div>
+      </div>
+      <div style="display: flex; gap: 15px;">
+        <div style="flex: 1;"><label>Godzina startu:</label><input type="time" id="edit-wstart" value="20:00"></div>
+        <div style="flex: 1;"><label>Godzina końca:</label><input type="time" id="edit-wend" value="20:30"></div>
+      </div>
+      <button class="btn" style="width: 100%;" id="btn-save-settings">💾 Zapisz ustawienia w ESP32</button>
+    </div>
+
+    <!-- WYKRESY -->
+    <div class="card">
+      <h2>Historia Wilgotności (ostatnie 24 odczyty)</h2>
+      <h3 style="font-size: 0.9em; text-align: center; color: #d32f2f;">Strefa 1</h3>
+      <div class="chart-container"><canvas id="chart1"></canvas></div>
+      <hr>
+      <h3 style="font-size: 0.9em; text-align: center; color: #388e3c;">Strefa 2</h3>
+      <div class="chart-container"><canvas id="chart2"></canvas></div>
+      <hr>
+      <h3 style="font-size: 0.9em; text-align: center; color: #1976d2;">Strefa 3</h3>
+      <div class="chart-container"><canvas id="chart3"></canvas></div>
+    </div>
+
+  </div>
+
+  <!-- FIREBASE MODULAR SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDQZKRMgQSnR7XC7iGxC2bObtMmQnNZ5qE",
+      authDomain: "praca-d4f39.firebaseapp.com",
+      databaseURL: "https://praca-d4f39-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "praca-d4f39",
+      storageBucket: "praca-d4f39.firebasestorage.app",
+      messagingSenderId: "499078112560",
+      appId: "1:499078112560:web:886171e73ddb6bcebc14f5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let chart1, chart2, chart3;
+
+    function initCharts() {
+      if (chart1) return;
+      const opt = { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } };
+      chart1 = new Chart(document.getElementById('chart1').getContext('2d'), {
+        type: 'line', data: { labels: [], datasets: [{ label: 'Wilgotność %', data: [], borderColor: '#d32f2f', backgroundColor: 'rgba(211,47,47,0.1)', fill: true, tension: 0.2 }]}, options: opt
+      });
+      chart2 = new Chart(document.getElementById('chart2').getContext('2d'), {
+        type: 'line', data: { labels: [], datasets: [{ label: 'Wilgotność %', data: [], borderColor: '#388e3c', backgroundColor: 'rgba(56,142,60,0.1)', fill: true, tension: 0.2 }]}, options: opt
+      });
+      chart3 = new Chart(document.getElementById('chart3').getContext('2d'), {
+        type: 'line', data: { labels: [], datasets: [{ label: 'Wilgotność %', data: [], borderColor: '#1976d2', backgroundColor: 'rgba(25,118,210,0.1)', fill: true, tension: 0.2 }]}, options: opt
+      });
+    }
+
+    // Logowanie
+    document.getElementById('btn-login').addEventListener('click', () => {
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-pass').value;
+      signInWithEmailAndPassword(auth, email, pass)
+        .catch((err) => {
+          document.getElementById('login-error').innerText = "Błąd logowania: " + err.message;
+        });
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+
+    // Reakcja na stan zalogowania
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+        document.getElementById('status-bar').innerText = "Połączono z chmurą jako: " + user.email;
+        initCharts();
+        nasluchujDanych();
+      } else {
+        document.getElementById('login-section').classList.remove('hidden');
+        document.getElementById('dashboard-section').classList.add('hidden');
+        document.getElementById('status-bar').innerText = "Wymagane logowanie do chmury Firebase";
+      }
+    });
+
+    // Nasłuchiwanie danych na żywo z Firebase
+    function nasluchujDanych() {
+      onValue(ref(db, '/stan'), (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        document.getElementById('time').innerText = data.time || '--:--';
+        document.getElementById('h1').innerText = (data.h1 ?? '--') + ' %';
+        document.getElementById('h2').innerText = (data.h2 ?? '--') + ' %';
+        document.getElementById('h3').innerText = (data.h3 ?? '--') + ' %';
+
+        // Pogoda
+        for (let i = 0; i < 3; i++) {
+          if (data['temp' + i] !== undefined) document.getElementById('temp' + i).innerText = data['temp' + i];
+          if (data['hum' + i] !== undefined)  document.getElementById('hum' + i).innerText  = data['hum' + i];
+          if (data['pop' + i] !== undefined)  document.getElementById('pop' + i).innerText  = data['pop' + i];
+          if (data['rain' + i] !== undefined) document.getElementById('rain' + i).innerText = data['rain' + i];
+        }
+
+        // Beczka
+        const bVal = parseInt(data.barrel);
+        document.getElementById('barrel').innerText = isNaN(bVal) ? '--' : bVal;
+        const statusElem = document.getElementById('barrel-status');
+        if (bVal < 10) {
+          statusElem.innerText = '⚠️ Niski poziom (<10%)';
+          statusElem.style.color = '#dc2626';
+        } else if (bVal >= 95) {
+          statusElem.innerText = '💧 Przepełnienie (Opróżnianie)';
+          statusElem.style.color = '#2563eb';
+        } else {
+          statusElem.innerText = 'Stan prawidłowy';
+          statusElem.style.color = '#16a34a';
+        }
+
+        // Pompa
+        const pumpElem = document.getElementById('pump-status');
+        if (data.podlewa) {
+          pumpElem.innerText = '🟢 AKTYWNA (Trwa podlewanie)';
+          pumpElem.style.color = '#16a34a';
+        } else {
+          pumpElem.innerText = '⚪ Wyłączona';
+          pumpElem.style.color = '#555';
+        }
+
+        // Wykresy
+        if (data.history) {
+          if (data.history.labels1) { chart1.data.labels = data.history.labels1; chart1.data.datasets[0].data = data.history.data1; chart1.update(); }
+          if (data.history.labels2) { chart2.data.labels = data.history.labels2; chart2.data.datasets[0].data = data.history.data2; chart2.update(); }
+          if (data.history.labels3) { chart3.data.labels = data.history.labels3; chart3.data.datasets[0].data = data.history.data3; chart3.update(); }
+        }
+      });
+
+      // Pobranie zapisanych ustawień
+      onValue(ref(db, '/ustawienia'), (snapshot) => {
+        const u = snapshot.val();
+        if (!u) return;
+        if (u.p1) { document.getElementById('p1_name').innerText = u.p1; document.getElementById('edit-p1').value = u.p1; }
+        if (u.t1) { document.getElementById('t1').innerText = u.t1;      document.getElementById('edit-t1').value = u.t1; }
+        if (u.p2) { document.getElementById('p2_name').innerText = u.p2; document.getElementById('edit-p2').value = u.p2; }
+        if (u.t2) { document.getElementById('t2').innerText = u.t2;      document.getElementById('edit-t2').value = u.t2; }
+        if (u.p3) { document.getElementById('p3_name').innerText = u.p3; document.getElementById('edit-p3').value = u.p3; }
+        if (u.t3) { document.getElementById('t3').innerText = u.t3;      document.getElementById('edit-t3').value = u.t3; }
+        if (u.wStart) document.getElementById('edit-wstart').value = u.wStart;
+        if (u.wEnd)   document.getElementById('edit-wend').value = u.wEnd;
+      });
+    }
+
+    // Zdalny START
+    document.getElementById('btn-start-manual').addEventListener('click', () => {
+      const zone = parseInt(document.getElementById('manual-zone').value);
+      const time = parseInt(document.getElementById('manual-time').value);
+      set(ref(db, '/komendy'), {
+        akcja: "START",
+        zone: zone,
+        time: time,
+        trigger: Date.now()
+      });
+      alert(`Wysłano polecenie uruchomienia Strefy ${zone} na ${time}s!`);
+    });
+
+    // Zdalny STOP
+    document.getElementById('btn-stop-all').addEventListener('click', () => {
+      set(ref(db, '/komendy'), {
+        akcja: "STOP",
+        trigger: Date.now()
+      });
+      alert("Wysłano polecenie AWARYJNEGO ZATRZYMANIA!");
+    });
+
+    // Zapis ustawień
+    document.getElementById('btn-save-settings').addEventListener('click', () => {
+      set(ref(db, '/ustawienia'), {
+        p1: document.getElementById('edit-p1').value,
+        t1: document.getElementById('edit-t1').value,
+        p2: document.getElementById('edit-p2').value,
+        t2: document.getElementById('edit-t2').value,
+        p3: document.getElementById('edit-p3').value,
+        t3: document.getElementById('edit-t3').value,
+        wStart: document.getElementById('edit-wstart').value,
+        wEnd: document.getElementById('edit-wend').value,
+        updated: Date.now()
+      });
+      alert("Ustawienia zapisane w chmurze! ESP32 pobierze je w ciągu 10 sekund.");
+    });
+  </script>
+</body>
+</html>
