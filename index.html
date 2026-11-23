@@ -24,9 +24,11 @@
     .zone-col-setup { flex: 1.2; min-width: 240px; }
     .zone-col-manual { flex: 1; min-width: 220px; }
     .zone-col-setup label, .zone-col-manual label { display: block; font-size: 0.9em; font-weight: bold; margin-bottom: 6px; color: #444; }
+    input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; margin-top: 4px; margin-bottom: 12px; font-size: 0.95em; background-color: #ffffff; color: #111; }
+    select { cursor: pointer; }
     .inline-inputs { display: flex; gap: 8px; align-items: center; }
     .inline-inputs input, .inline-inputs select { margin: 0; height: 38px; }
-    .zone-col-setup .inline-inputs input[type="text"] { flex: 2; }
+    .zone-col-setup .inline-inputs select { flex: 2; }
     .zone-col-setup .inline-inputs input[type="number"] { flex: 1; max-width: 85px; }
     .zone-col-manual .inline-inputs select { flex: 1; }
     .btn-manual { background: #f59e0b; color: white; border: none; border-radius: 4px; padding: 0 16px; height: 38px; font-size: 0.95em; font-weight: bold; cursor: pointer; white-space: nowrap; }
@@ -34,7 +36,6 @@
     .weather-box { display: flex; flex-direction: row; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
     .w-day { background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center; flex: 1; min-width: 200px; }
     .chart-container { width: 100%; height: 250px; margin-bottom: 20px; }
-    input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; margin-top: 4px; margin-bottom: 12px; font-size: 0.95em; background: white; }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -50,9 +51,9 @@
     <div class="card">
       <h2 style="margin-top:0;">Logowanie do systemu</h2>
       <label>E-mail:</label>
-      <input type="email" id="login-email" placeholder="...">
+      <input type="email" id="login-email" value="bibul2019@gmail.com">
       <label>Hasło:</label>
-      <input type="password" id="login-pass" placeholder="...">
+      <input type="password" id="login-pass" placeholder="Wpisz hasło">
       <button class="btn" id="btn-login">Zaloguj się</button>
       <p id="login-error" style="color: red; font-size: 0.9em; margin-top: 10px;"></p>
     </div>
@@ -115,7 +116,7 @@
       </div>
     </div>
 
-    <!-- USTAWIENIA I STEROWANIE (UKŁAD BAZOWY) -->
+    <!-- USTAWIENIA I STEROWANIE -->
     <div class="card">
       <h2>Ustawienia i Sterowanie</h2>
 
@@ -124,14 +125,6 @@
       <!-- PRZYCISK BEZPIECZEŃSTWA STOP -->
       <button type="button" class="btn-stop" id="btn-stop-all">⛔ STOP / AWARYJNE WYŁĄCZENIE</button>
 
-      <datalist id="profile-list">
-        <option value="Trawa">
-        <option value="Kwiaty">
-        <option value="Warzywa">
-        <option value="Krzewy">
-        <option value="Iglaki">
-      </datalist>
-
       <!-- STREFA 1 -->
       <div class="form-group">
         <h3 style="color: #d32f2f;">Strefa 1</h3>
@@ -139,7 +132,13 @@
           <div class="zone-col-setup">
             <label>Profil / Cel %:</label>
             <div class="inline-inputs">
-              <input type="text" id="edit-p1" list="profile-list" value="Trawa" placeholder="Nazwa rośliny">
+              <select id="edit-p1" data-zone="1">
+                <option value="Trawa" data-target="60" selected>Trawa</option>
+                <option value="Kwiaty" data-target="70">Kwiaty</option>
+                <option value="Warzywa" data-target="80">Warzywa</option>
+                <option value="Krzewy" data-target="65">Krzewy</option>
+                <option value="Iglaki" data-target="55">Iglaki</option>
+              </select>
               <input type="number" id="edit-t1" value="60" min="0" max="100">
             </div>
           </div>
@@ -148,6 +147,7 @@
             <div class="inline-inputs">
               <select id="dur1">
                 <option value="30">30s</option>
+                <option value="60">1min</option>
                 <option value="300" selected>5min</option>
                 <option value="600">10min</option>
                 <option value="900">15min</option>
@@ -165,7 +165,13 @@
           <div class="zone-col-setup">
             <label>Profil / Cel %:</label>
             <div class="inline-inputs">
-              <input type="text" id="edit-p2" list="profile-list" value="Kwiaty" placeholder="Nazwa rośliny">
+              <select id="edit-p2" data-zone="2">
+                <option value="Trawa" data-target="60">Trawa</option>
+                <option value="Kwiaty" data-target="70" selected>Kwiaty</option>
+                <option value="Warzywa" data-target="80">Warzywa</option>
+                <option value="Krzewy" data-target="65">Krzewy</option>
+                <option value="Iglaki" data-target="55">Iglaki</option>
+              </select>
               <input type="number" id="edit-t2" value="70" min="0" max="100">
             </div>
           </div>
@@ -174,6 +180,7 @@
             <div class="inline-inputs">
               <select id="dur2">
                 <option value="30">30s</option>
+                <option value="60">1min</option>
                 <option value="300" selected>5min</option>
                 <option value="600">10min</option>
                 <option value="900">15min</option>
@@ -191,7 +198,13 @@
           <div class="zone-col-setup">
             <label>Profil / Cel %:</label>
             <div class="inline-inputs">
-              <input type="text" id="edit-p3" list="profile-list" value="Warzywa" placeholder="Nazwa rośliny">
+              <select id="edit-p3" data-zone="3">
+                <option value="Trawa" data-target="60">Trawa</option>
+                <option value="Kwiaty" data-target="70">Kwiaty</option>
+                <option value="Warzywa" data-target="80" selected>Warzywa</option>
+                <option value="Krzewy" data-target="65">Krzewy</option>
+                <option value="Iglaki" data-target="55">Iglaki</option>
+              </select>
               <input type="number" id="edit-t3" value="80" min="0" max="100">
             </div>
           </div>
@@ -200,6 +213,7 @@
             <div class="inline-inputs">
               <select id="dur3">
                 <option value="30">30s</option>
+                <option value="60">1min</option>
                 <option value="300" selected>5min</option>
                 <option value="600">10min</option>
                 <option value="900">15min</option>
@@ -258,6 +272,31 @@
     const db = getDatabase(app);
 
     let chart1, chart2, chart3;
+
+    // Automatyczne ustawianie domyślnego progu wilgotności po zmianie profilu rośliny
+    ['edit-p1', 'edit-p2', 'edit-p3'].forEach((selectId) => {
+      const selectEl = document.getElementById(selectId);
+      selectEl.addEventListener('change', () => {
+        const zone = selectEl.getAttribute('data-zone');
+        const selectedOption = selectEl.options[selectEl.selectedIndex];
+        const target = selectedOption.getAttribute('data-target');
+        if (target) {
+          document.getElementById('edit-t' + zone).value = target;
+        }
+      });
+    });
+
+    function ustawWartoscSelecta(selectId, val) {
+      const sel = document.getElementById(selectId);
+      const exists = Array.from(sel.options).some(opt => opt.value === val);
+      if (!exists && val) {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val;
+        sel.appendChild(opt);
+      }
+      sel.value = val;
+    }
 
     function initCharts() {
       if (chart1) return;
@@ -360,4 +399,65 @@
       onValue(ref(db, '/ustawienia'), (snapshot) => {
         const u = snapshot.val();
         if (!u) return;
-        if (u.
+        if (u.p1) {
+          document.getElementById('p1_name').innerText = u.p1;
+          ustawWartoscSelecta('edit-p1', u.p1);
+        }
+        if (u.t1) { document.getElementById('t1').innerText = u.t1; document.getElementById('edit-t1').value = u.t1; }
+        if (u.p2) {
+          document.getElementById('p2_name').innerText = u.p2;
+          ustawWartoscSelecta('edit-p2', u.p2);
+        }
+        if (u.t2) { document.getElementById('t2').innerText = u.t2; document.getElementById('edit-t2').value = u.t2; }
+        if (u.p3) {
+          document.getElementById('p3_name').innerText = u.p3;
+          ustawWartoscSelecta('edit-p3', u.p3);
+        }
+        if (u.t3) { document.getElementById('t3').innerText = u.t3; document.getElementById('edit-t3').value = u.t3; }
+        if (u.wStart) document.getElementById('edit-wstart').value = u.wStart;
+        if (u.wEnd)   document.getElementById('edit-wend').value   = u.wEnd;
+      });
+    }
+
+    // Zdalny START dla wybranej strefy (Strefa 1, 2 lub 3)
+    document.querySelectorAll('.btn-manual').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const zone = parseInt(btn.getAttribute('data-zone'));
+        const time = parseInt(document.getElementById('dur' + zone).value);
+        set(ref(db, '/komendy'), {
+          akcja: "START",
+          zone: zone,
+          time: time,
+          trigger: Date.now()
+        });
+        alert(`Wysłano polecenie uruchomienia Strefy ${zone} na ${time}s!`);
+      });
+    });
+
+    // Zdalny STOP
+    document.getElementById('btn-stop-all').addEventListener('click', () => {
+      set(ref(db, '/komendy'), {
+        akcja: "STOP",
+        trigger: Date.now()
+      });
+      alert("Wysłano polecenie AWARYJNEGO ZATRZYMANIA!");
+    });
+
+    // Zapis ustawień
+    document.getElementById('btn-save-settings').addEventListener('click', () => {
+      set(ref(db, '/ustawienia'), {
+        p1: document.getElementById('edit-p1').value,
+        t1: document.getElementById('edit-t1').value,
+        p2: document.getElementById('edit-p2').value,
+        t2: document.getElementById('edit-t2').value,
+        p3: document.getElementById('edit-p3').value,
+        t3: document.getElementById('edit-t3').value,
+        wStart: document.getElementById('edit-wstart').value,
+        wEnd: document.getElementById('edit-wend').value,
+        updated: Date.now()
+      });
+      alert("Ustawienia zapisane w chmurze! ESP32 pobierze je w ciągu 10 sekund.");
+    });
+  </script>
+</body>
+</html>
