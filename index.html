@@ -15,13 +15,26 @@
     .zone-profile { font-size: 0.9em; color: #777; font-style: italic; }
     .btn { display: inline-block; background: #2196F3; color: white; padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; width: 100%; }
     .btn:hover { opacity: 0.9; }
-    .btn-stop { background: #dc2626; font-weight: bold; }
     .grid-3 { display: flex; gap: 15px; flex-wrap: wrap; }
     .col-3 { flex: 1; min-width: 200px; }
+    .grid-2 { display: flex; gap: 15px; flex-wrap: wrap; }
+    .col-2 { flex: 1; min-width: 200px; }
     .weather-box { display: flex; flex-direction: row; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
     .w-day { background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center; flex: 1; min-width: 200px; }
     .chart-container { width: 100%; height: 250px; margin-bottom: 20px; }
-    input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; margin-top: 4px; margin-bottom: 12px; }
+    input, select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      height: 36px;
+      font-family: inherit;
+      font-size: 14px;
+      box-sizing: border-box;
+      margin-top: 4px;
+      margin-bottom: 12px;
+      background-color: #fff;
+    }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -37,9 +50,9 @@
     <div class="card">
       <h2 style="margin-top:0;">Logowanie do systemu</h2>
       <label>E-mail:</label>
-      <input type="email" id="login-email" placeholder="...">
+      <input type="email" id="login-email" value="bibul2019@gmail.com">
       <label>Hasło:</label>
-      <input type="password" id="login-pass" placeholder="...">
+      <input type="password" id="login-pass" placeholder="Wpisz hasło">
       <button class="btn" id="btn-login">Zaloguj się</button>
       <p id="login-error" style="color: red; font-size: 0.9em; margin-top: 10px;"></p>
     </div>
@@ -102,30 +115,52 @@
       </div>
     </div>
 
-    <!-- STEROWANIE RĘCZNE (UKŁAD IDENTYCZNY JAK EDYCJA USTAWIEŃ) -->
+    <!-- STEROWANIE RĘCZNE (UKŁAD 1:1 JAK EDYCJA USTAWIEŃ) -->
     <div class="card">
       <h2>Sterowanie Ręczne</h2>
-      <p style="margin-top: 0; color: #555;">Status pompy: <strong id="pump-status">Sprawdzanie...</strong></p>
       <div class="grid-3">
         <div class="col-3">
-          <label>Strefa 1 (<span id="man-p1">Trawa</span>) – Czas (s):</label>
-          <input type="number" id="manual-time-1" value="60" min="5" max="3600">
-          <button class="btn btn-start-zone" data-zone="1">▶ Włącz Strefę 1</button>
+          <label>Strefa 1 (<span id="man-p1">Trawa</span>) – Stan:</label>
+          <select id="man-state-1">
+            <option value="0">Wyłączona</option>
+            <option value="1">Włączona</option>
+          </select>
+          <label>Strefa 1 – Czas (s):</label>
+          <input type="number" id="man-time-1" value="60" min="5" max="3600">
         </div>
         <div class="col-3">
-          <label>Strefa 2 (<span id="man-p2">Kwiaty</span>) – Czas (s):</label>
-          <input type="number" id="manual-time-2" value="60" min="5" max="3600">
-          <button class="btn btn-start-zone" data-zone="2">▶ Włącz Strefę 2</button>
+          <label>Strefa 2 (<span id="man-p2">Kwiaty</span>) – Stan:</label>
+          <select id="man-state-2">
+            <option value="0">Wyłączona</option>
+            <option value="1">Włączona</option>
+          </select>
+          <label>Strefa 2 – Czas (s):</label>
+          <input type="number" id="man-time-2" value="60" min="5" max="3600">
         </div>
         <div class="col-3">
-          <label>Strefa 3 (<span id="man-p3">Warzywa</span>) – Czas (s):</label>
-          <input type="number" id="manual-time-3" value="60" min="5" max="3600">
-          <button class="btn btn-start-zone" data-zone="3">▶ Włącz Strefę 3</button>
+          <label>Strefa 3 (<span id="man-p3">Warzywa</span>) – Stan:</label>
+          <select id="man-state-3">
+            <option value="0">Wyłączona</option>
+            <option value="1">Włączona</option>
+          </select>
+          <label>Strefa 3 – Czas (s):</label>
+          <input type="number" id="man-time-3" value="60" min="5" max="3600">
         </div>
       </div>
-      <div style="margin-top: 15px;">
-        <button class="btn btn-stop" id="btn-stop-all">🛑 AWARYJNY STOP (Wyłącz wszystko)</button>
+      <div class="grid-2">
+        <div class="col-2">
+          <label>Tryb sterowania:</label>
+          <select id="man-action">
+            <option value="START">Uruchom wybrane strefy (START)</option>
+            <option value="STOP">Awaryjny STOP (Wyłącz wszystko)</option>
+          </select>
+        </div>
+        <div class="col-2">
+          <label>Aktualny status pompy:</label>
+          <input type="text" id="pump-status" value="Sprawdzanie..." readonly style="background-color: #f9fafb; font-weight: bold;">
+        </div>
       </div>
+      <button class="btn" id="btn-send-manual">▶ Wyślij sterowanie do ESP32</button>
     </div>
 
     <!-- WYKRESY -->
@@ -146,212 +181,6 @@
       <h2>Edycja Ustawień Harmonogramu i Celów</h2>
       <div class="grid-3">
         <div class="col-3">
-          <label>Strefa 1 – Roślina:</label><input type="text" id="edit-p1" value="Trawa">
-          <label>Strefa 1 – Cel (%):</label><input type="number" id="edit-t1" value="60">
-        </div>
-        <div class="col-3">
-          <label>Strefa 2 – Roślina:</label><input type="text" id="edit-p2" value="Kwiaty">
-          <label>Strefa 2 – Cel (%):</label><input type="number" id="edit-t2" value="70">
-        </div>
-        <div class="col-3">
-          <label>Strefa 3 – Roślina:</label><input type="text" id="edit-p3" value="Warzywa">
-          <label>Strefa 3 – Cel (%):</label><input type="number" id="edit-t3" value="80">
-        </div>
-      </div>
-      <div style="display: flex; gap: 15px;">
-        <div style="flex: 1;"><label>Godzina startu:</label><input type="time" id="edit-wstart" value="20:00"></div>
-        <div style="flex: 1;"><label>Godzina końca:</label><input type="time" id="edit-wend" value="20:30"></div>
-      </div>
-      <button class="btn" id="btn-save-settings">💾 Zapisz ustawienia w ESP32</button>
-    </div>
-
-  </div>
-
-  <!-- FIREBASE MODULAR SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDQZKRMgQSnR7XC7iGxC2bObtMmQnNZ5qE",
-      authDomain: "praca-d4f39.firebaseapp.com",
-      databaseURL: "https://praca-d4f39-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "praca-d4f39",
-      storageBucket: "praca-d4f39.firebasestorage.app",
-      messagingSenderId: "499078112560",
-      appId: "1:499078112560:web:886171e73ddb6bcebc14f5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-
-    let chart1, chart2, chart3;
-
-    function initCharts() {
-      if (chart1) return;
-      const opt = { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } };
-      chart1 = new Chart(document.getElementById('chart1').getContext('2d'), {
-        type: 'line', data: { labels: [], datasets: [{ label: 'Wilgotność %', data: [], borderColor: '#d32f2f', backgroundColor: 'rgba(211,47,47,0.1)', fill: true, tension: 0.2 }]}, options: opt
-      });
-      chart2 = new Chart(document.getElementById('chart2').getContext('2d'), {
-        type: 'line', data: { labels: [], datasets: [{ label: 'Wilgotność %', data: [], borderColor: '#388e3c', backgroundColor: 'rgba(56,142,60,0.1)', fill: true, tension: 0.2 }]}, options: opt
-      });
-      chart3 = new Chart(document.getElementById('chart3').getContext('2d'), {
-        type: 'line', data: { labels: [], datasets: [{ label: 'Wilgotność %', data: [], borderColor: '#1976d2', backgroundColor: 'rgba(25,118,210,0.1)', fill: true, tension: 0.2 }]}, options: opt
-      });
-    }
-
-    // Logowanie
-    document.getElementById('btn-login').addEventListener('click', () => {
-      const email = document.getElementById('login-email').value;
-      const pass = document.getElementById('login-pass').value;
-      signInWithEmailAndPassword(auth, email, pass)
-        .catch((err) => {
-          document.getElementById('login-error').innerText = "Błąd logowania: " + err.message;
-        });
-    });
-
-    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
-
-    // Reakcja na stan zalogowania
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('dashboard-section').classList.remove('hidden');
-        document.getElementById('status-bar').innerText = "Połączono z chmurą jako: " + user.email;
-        initCharts();
-        nasluchujDanych();
-      } else {
-        document.getElementById('login-section').classList.remove('hidden');
-        document.getElementById('dashboard-section').classList.add('hidden');
-        document.getElementById('status-bar').innerText = "Wymagane logowanie do chmury Firebase";
-      }
-    });
-
-    // Nasłuchiwanie danych na żywo z Firebase
-    function nasluchujDanych() {
-      onValue(ref(db, '/stan'), (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-
-        document.getElementById('time').innerText = data.time || '--:--';
-        document.getElementById('h1').innerText = (data.h1 ?? '--') + ' %';
-        document.getElementById('h2').innerText = (data.h2 ?? '--') + ' %';
-        document.getElementById('h3').innerText = (data.h3 ?? '--') + ' %';
-
-        // Pogoda
-        for (let i = 0; i < 3; i++) {
-          if (data['temp' + i] !== undefined) document.getElementById('temp' + i).innerText = data['temp' + i];
-          if (data['hum' + i] !== undefined)  document.getElementById('hum' + i).innerText  = data['hum' + i];
-          if (data['pop' + i] !== undefined)  document.getElementById('pop' + i).innerText  = data['pop' + i];
-          if (data['rain' + i] !== undefined) document.getElementById('rain' + i).innerText = data['rain' + i];
-        }
-
-        // Beczka
-        const bVal = parseInt(data.barrel);
-        document.getElementById('barrel').innerText = isNaN(bVal) ? '--' : bVal;
-        const statusElem = document.getElementById('barrel-status');
-        if (bVal < 10) {
-          statusElem.innerText = '⚠️ Niski poziom (<10%)';
-          statusElem.style.color = '#dc2626';
-        } else if (bVal >= 95) {
-          statusElem.innerText = '💧 Przepełnienie (Opróżnianie)';
-          statusElem.style.color = '#2563eb';
-        } else {
-          statusElem.innerText = 'Stan prawidłowy';
-          statusElem.style.color = '#16a34a';
-        }
-
-        // Pompa
-        const pumpElem = document.getElementById('pump-status');
-        if (data.podlewa) {
-          pumpElem.innerText = '🟢 AKTYWNA (Trwa podlewanie)';
-          pumpElem.style.color = '#16a34a';
-        } else {
-          pumpElem.innerText = '⚪ Wyłączona';
-          pumpElem.style.color = '#555';
-        }
-
-        // Wykresy
-        if (data.history) {
-          if (data.history.labels1) { chart1.data.labels = data.history.labels1; chart1.data.datasets[0].data = data.history.data1; chart1.update(); }
-          if (data.history.labels2) { chart2.data.labels = data.history.labels2; chart2.data.datasets[0].data = data.history.data2; chart2.update(); }
-          if (data.history.labels3) { chart3.data.labels = data.history.labels3; chart3.data.datasets[0].data = data.history.data3; chart3.update(); }
-        }
-      });
-
-      // Pobranie zapisanych ustawień
-      onValue(ref(db, '/ustawienia'), (snapshot) => {
-        const u = snapshot.val();
-        if (!u) return;
-        if (u.p1) {
-          document.getElementById('p1_name').innerText = u.p1;
-          document.getElementById('man-p1').innerText  = u.p1;
-          document.getElementById('edit-p1').value     = u.p1;
-        }
-        if (u.t1) { document.getElementById('t1').innerText = u.t1; document.getElementById('edit-t1').value = u.t1; }
-        if (u.p2) {
-          document.getElementById('p2_name').innerText = u.p2;
-          document.getElementById('man-p2').innerText  = u.p2;
-          document.getElementById('edit-p2').value     = u.p2;
-        }
-        if (u.t2) { document.getElementById('t2').innerText = u.t2; document.getElementById('edit-t2').value = u.t2; }
-        if (u.p3) {
-          document.getElementById('p3_name').innerText = u.p3;
-          document.getElementById('man-p3').innerText  = u.p3;
-          document.getElementById('edit-p3').value     = u.p3;
-        }
-        if (u.t3) { document.getElementById('t3').innerText = u.t3; document.getElementById('edit-t3').value = u.t3; }
-        if (u.wStart) document.getElementById('edit-wstart').value = u.wStart;
-        if (u.wEnd)   document.getElementById('edit-wend').value   = u.wEnd;
-      });
-    }
-
-    // Zdalny START dla wybranej strefy (Strefa 1, 2 lub 3)
-    document.querySelectorAll('.btn-start-zone').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const zone = parseInt(btn.getAttribute('data-zone'));
-        const time = parseInt(document.getElementById('manual-time-' + zone).value);
-        if (isNaN(time) || time < 5) {
-          alert("Podaj poprawny czas (minimum 5 sekund).");
-          return;
-        }
-        set(ref(db, '/komendy'), {
-          akcja: "START",
-          zone: zone,
-          time: time,
-          trigger: Date.now()
-        });
-        alert(`Wysłano polecenie uruchomienia Strefy ${zone} na ${time}s!`);
-      });
-    });
-
-    // Zdalny STOP
-    document.getElementById('btn-stop-all').addEventListener('click', () => {
-      set(ref(db, '/komendy'), {
-        akcja: "STOP",
-        trigger: Date.now()
-      });
-      alert("Wysłano polecenie AWARYJNEGO ZATRZYMANIA!");
-    });
-
-    // Zapis ustawień
-    document.getElementById('btn-save-settings').addEventListener('click', () => {
-      set(ref(db, '/ustawienia'), {
-        p1: document.getElementById('edit-p1').value,
-        t1: document.getElementById('edit-t1').value,
-        p2: document.getElementById('edit-p2').value,
-        t2: document.getElementById('edit-t2').value,
-        p3: document.getElementById('edit-p3').value,
-        t3: document.getElementById('edit-t3').value,
-        wStart: document.getElementById('edit-wstart').value,
-        wEnd: document.getElementById('edit-wend').value,
-        updated: Date.now()
-      });
-      alert("Ustawienia zapisane w chmurze! ESP32 pobierze je w ciągu 10 sekund.");
-    });
-  </script>
-</body>
-</html>
+          <label>Strefa 1 – Roślina:</label>
+          <input type="text" id="edit-p1" value="Trawa">
+          <label>Strefa 1 – Cel (%):</label
